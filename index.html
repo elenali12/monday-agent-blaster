@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>monday.com Agent Blaster 🤖</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0d0d1a;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+    color: white;
+  }
+
+  #ui-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px;
+    background: rgba(13,13,26,0.85);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .d1 { background: #ff6b6b; }
+  .d2 { background: #ffcc00; }
+  .d3 { background: #00c875; }
+
+  #score-display {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #00c875;
+  }
+
+  #lives-display {
+    font-size: 16px;
+    color: #ff6b6b;
+    letter-spacing: 2px;
+  }
+
+  #game-canvas {
+    display: block;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(94, 60, 219, 0.25);
+    margin-top: 70px;
+    cursor: none;
+  }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,13,26,0.93);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  #overlay h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #5e3cdb, #00c875);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  #overlay p {
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+    text-align: center;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  .pill-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 8px 0;
+  }
+
+  .status-pill {
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .s-stuck     { background: #e2445c; color: #fff; }
+  .s-working   { background: #fdab3d; color: #fff; }
+  .s-review    { background: #579bfc; color: #fff; }
+  .s-done      { background: #00c875; color: #fff; }
+
+  #start-btn {
+    margin-top: 12px;
+    padding: 16px 48px;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #5e3cdb, #00c875);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  #start-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(94,60,219,0.5);
+  }
+
+  #agent-selector {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 4px 0;
+  }
+
+  .agent-card {
+    width: 88px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 10px 8px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: border 0.15s, background 0.15s;
+  }
+
+  .agent-card:hover { background: rgba(255,255,255,0.06); }
+  .agent-card.selected { border-color: #00c875; background: rgba(0,200,117,0.08); }
+
+  .agent-card img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+
+  .agent-card span {
+    font-size: 10px;
+    text-align: center;
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+  }
+
+  #controls-hint {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.5px;
+    z-index: 100;
+  }
+
+  #share-btn {
+    padding: 10px 28px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  #share-btn:hover { background: rgba(255,255,255,0.1); }
+
+  #level-banner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: 900;
+    color: #00c875;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 150;
+    text-shadow: 0 0 30px #00c875;
+    transition: opacity 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<div id="ui-header">
+  <div class="logo">
+    <div class="logo-dot d1"></div>
+    <div class="logo-dot d2"></div>
+    <div class="logo-dot d3"></div>
+    Agent Blaster
+  </div>
+  <div id="score-display">SCORE: 0</div>
+  <div id="lives-display">♥ ♥ ♥</div>
+</div>
+
+<canvas id="game-canvas"></canvas>
+<div id="controls-hint">← → MOVE &nbsp;|&nbsp; SPACE / CLICK SHOOT &nbsp;|&nbsp; Mobile: tap to shoot</div>
+<div id="level-banner"></div>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <h1>Agent Blaster</h1>
+  <p>Your monday.com AI agent is on a mission — shoot every task before it reaches <b style="color:#ff6b6b">STUCK</b>!</p>
+
+  <div class="pill-row">
+    <div class="status-pill s-stuck">Stuck 💀 −1 life</div>
+    <div class="status-pill s-working">Working on it</div>
+    <div class="status-pill s-review">In Review</div>
+    <div class="status-pill s-done">Done ✓ +10 pts</div>
+  </div>
+
+  <p style="font-size:13px; color:rgba(255,255,255,0.45)">Choose your agent</p>
+  <div id="agent-selector">
+    <div class="agent-card selected" data-agent="lead" onclick="selectAgent(this)">
+      <img src="https://cdn.prod.website-files.com/656da6fea306219773d04208/698845f5222165d5c6dab705_Frame%202147238707.avif" alt="Lead Agent" onerror="this.src='';this.parentElement.style.fontSize='36px';this.parentElement.innerHTML='🤖<span>Lead</span>'">
+      <span>Lead Agent</span>
+    </div>
+    <div class="agent-card" data-agent="sales" onclick="selectAgent(this)">
+      <img src="https://cdn.prod.website-files.com/656da6fea306219773d04208/698845f5ac985f69b35148aa_Frame%202147238712.avif" alt="Sales Agent" onerror="this.src='';this.parentElement.innerHTML='🤖<span>Sales</span>'">
+      <span>Sales Agent</span>
+    </div>
+    <div class="agent-card" data-agent="bug" onclick="selectAgent(this)">
+      <img src="https://cdn.prod.website-files.com/656da6fea306219773d04208/698849c3dd58860e7a43882b_Frame%202147238712.avif" alt="Bug Agent" onerror="this.src='';this.parentElement.innerHTML='🤖<span>Bug Fix</span>'">
+      <span>Bug Fixer</span>
+    </div>
+    <div class="agent-card" data-agent="coding" onclick="selectAgent(this)">
+      <img src="https://cdn.prod.website-files.com/656da6fea306219773d04208/698849c3a36be34668bf62e9_Frame%202147238713.avif" alt="Coding Agent" onerror="this.src='';this.parentElement.innerHTML='🤖<span>Coding</span>'">
+      <span>Coding Agent</span>
+    </div>
+  </div>
+
+  <button id="start-btn" onclick="startGame()">🚀 Start Blasting</button>
+  <button id="share-btn" onclick="shareGame()" style="display:none">📤 Share your score</button>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────
+const CANVAS_W = Math.min(window.innerWidth - 32, 700);
+const CANVAS_H = Math.min(window.innerHeight - 100, 620);
+const AGENT_W  = 80;
+const AGENT_H  = 80;
+const BULLET_SPEED = 10;
+const TASK_SPEED_BASE = 0.9;
+const MAX_LIVES = 3;
+
+// Exact monday.com status colors
+const STATUSES = [
+  { label: "Stuck",              color: "#e2445c", pts: -5,  weight: 2 },
+  { label: "Working on it",      color: "#fdab3d", pts: 10,  weight: 4 },
+  { label: "Waiting for review", color: "#579bfc", pts: 15,  weight: 3 },
+  { label: "Not Started",        color: "#c4c4c4", pts: 8,   weight: 3 },
+  { label: "In Progress",        color: "#a25ddc", pts: 12,  weight: 3 },
+];
+
+const DONE_STATUS = { label: "Done ✓", color: "#00c875", emoji: "✅" };
+
+const AGENT_IMAGES = {
+  lead:   "https://cdn.prod.website-files.com/656da6fea306219773d04208/698845f5222165d5c6dab705_Frame%202147238707.avif",
+  sales:  "https://cdn.prod.website-files.com/656da6fea306219773d04208/698845f5ac985f69b35148aa_Frame%202147238712.avif",
+  bug:    "https://cdn.prod.website-files.com/656da6fea306219773d04208/698849c3dd58860e7a43882b_Frame%202147238712.avif",
+  coding: "https://cdn.prod.website-files.com/656da6fea306219773d04208/698849c3a36be34668bf62e9_Frame%202147238713.avif",
+};
+
+const TASK_NAMES = [
+  "Q3 Report","Fix login bug","Update design","Review PR #42",
+  "Team sync","Deploy hotfix","Write specs","Client follow-up",
+  "Onboarding","Budget review","Slack noise","API docs",
+  "Sprint planning","Data migration","Email campaign",
+];
+
+// ── STATE ────────────────────────────────────────────────────────────
+let canvas, ctx;
+let score = 0, lives = MAX_LIVES, level = 1, frame = 0;
+let gameRunning = false;
+let selectedAgent = 'lead';
+let agentImg = null;
+
+let agent = { x: 0, y: 0, vx: 0 };
+let bullets = [];
+let tasks   = [];
+let particles = [];
+let floaters = []; // "Done!" popups
+
+let keys = {};
+let mouseX = null;
+let lastShot = 0;
+let spawnInterval = 100;
+
+// ── INIT ─────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  canvas = document.getElementById('game-canvas');
+  canvas.width  = CANVAS_W;
+  canvas.height = CANVAS_H;
+  ctx = canvas.getContext('2d');
+
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.clientX - r.left;
+  });
+  canvas.addEventListener('mousedown', shoot);
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - r.left;
+    shoot();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - r.left;
+  }, { passive: false });
+
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'Space') { e.preventDefault(); shoot(); }
+  });
+  window.addEventListener('keyup', e => keys[e.code] = false);
+
+  drawIdleScreen();
+});
+
+function selectAgent(card) {
+  document.querySelectorAll('.agent-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedAgent = card.dataset.agent;
+}
+
+function preloadAgentImage(key, cb) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = AGENT_IMAGES[key];
+  img.onload  = () => { agentImg = img; cb(); };
+  img.onerror = () => { agentImg = null; cb(); };
+}
+
+function startGame() {
+  document.getElementById('overlay').style.display = 'none';
+  score = 0; lives = MAX_LIVES; level = 1; frame = 0;
+  bullets = []; tasks = []; particles = []; floaters = [];
+  spawnInterval = 100;
+  agent.x = CANVAS_W / 2;
+  agent.y = CANVAS_H - AGENT_H - 16;
+  agent.vx = 0;
+  updateHUD();
+  preloadAgentImage(selectedAgent, () => {
+    gameRunning = true;
+    requestAnimationFrame(loop);
+  });
+}
+
+// ── GAME LOOP ─────────────────────────────────────────────────────────
+function loop() {
+  if (!gameRunning) return;
+  frame++;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function update() {
+  // Agent movement
+  if (mouseX !== null) {
+    const target = mouseX - AGENT_W / 2;
+    agent.x += (target - agent.x) * 0.18;
+  }
+  if (keys['ArrowLeft'] || keys['KeyA'])  agent.x -= 6;
+  if (keys['ArrowRight'] || keys['KeyD']) agent.x += 6;
+  agent.x = Math.max(0, Math.min(CANVAS_W - AGENT_W, agent.x));
+
+  // Bullets
+  bullets = bullets.filter(b => b.y > -10);
+  bullets.forEach(b => b.y -= BULLET_SPEED);
+
+  // Spawn tasks
+  if (frame % spawnInterval === 0) spawnTask();
+
+  // Level up every 600 frames
+  if (frame % 600 === 0) {
+    level++;
+    spawnInterval = Math.max(35, spawnInterval - 10);
+    showLevelBanner(`LEVEL ${level}`);
+  }
+
+  // Tasks
+  const speed = TASK_SPEED_BASE + level * 0.15;
+  tasks.forEach(t => {
+    t.y += t.speed * speed;
+    t.wobble = Math.sin(frame * 0.04 + t.wobbleOffset) * 3;
+  });
+
+  // Collision: bullets vs tasks
+  for (let bi = bullets.length - 1; bi >= 0; bi--) {
+    const b = bullets[bi];
+    for (let ti = tasks.length - 1; ti >= 0; ti--) {
+      const t = tasks[ti];
+      if (!t.hit && b.x > t.x - 4 && b.x < t.x + t.w + 4 &&
+          b.y > t.y - 4 && b.y < t.y + t.h + 4) {
+        t.hit = true;
+        bullets.splice(bi, 1);
+        blastTask(t, ti);
+        break;
+      }
+    }
+  }
+
+  // Tasks reaching bottom = lose life
+  for (let i = tasks.length - 1; i >= 0; i--) {
+    if (tasks[i].y > CANVAS_H + 20) {
+      if (!tasks[i].hit) loseLife();
+      tasks.splice(i, 1);
+    }
+  }
+
+  // Remove hit tasks with delay
+  tasks = tasks.filter(t => !(t.hit && t.deathAge > 40));
+  tasks.forEach(t => { if (t.hit) t.deathAge = (t.deathAge || 0) + 1; });
+
+  // Particles
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+    p.life -= 2; p.size *= 0.95;
+  });
+
+  // Floaters
+  floaters = floaters.filter(f => f.life > 0);
+  floaters.forEach(f => { f.y -= 1.2; f.life -= 1.5; });
+}
+
+function shoot() {
+  if (!gameRunning) return;
+  const now = Date.now();
+  if (now - lastShot < 280) return;
+  lastShot = now;
+  bullets.push({
+    x: agent.x + AGENT_W / 2,
+    y: agent.y - 10,
+    r: 5,
+  });
+}
+
+function spawnTask() {
+  const status = STATUSES[Math.floor(Math.random() * STATUSES.length)];
+  const name   = TASK_NAMES[Math.floor(Math.random() * TASK_NAMES.length)];
+  const w = 162, h = 54;
+  tasks.push({
+    x: Math.random() * (CANVAS_W - w - 10) + 5,
+    y: -h - 10,
+    w, h,
+    name,
+    status,
+    speed: 0.7 + Math.random() * 0.5,
+    wobbleOffset: Math.random() * Math.PI * 2,
+    wobble: 0,
+    hit: false,
+    deathAge: 0,
+    doneAlpha: 0,
+  });
+}
+
+function blastTask(t, idx) {
+  const pts = t.status.pts;
+  score = Math.max(0, score + pts);
+  updateHUD();
+
+  // Explosion particles
+  const color = pts > 0 ? '#00c875' : '#ff6b6b';
+  for (let i = 0; i < 18; i++) {
+    const angle = (Math.PI * 2 * i) / 18;
+    particles.push({
+      x: t.x + t.w / 2, y: t.y + t.h / 2,
+      vx: Math.cos(angle) * (2 + Math.random() * 3),
+      vy: Math.sin(angle) * (2 + Math.random() * 3),
+      life: 60 + Math.random() * 30,
+      size: 4 + Math.random() * 4,
+      color,
+    });
+  }
+
+  // Floating label
+  floaters.push({
+    x: t.x + t.w / 2,
+    y: t.y,
+    text: pts > 0 ? `✅ Done! +${pts}` : `💀 ${pts}`,
+    color: pts > 0 ? '#00c875' : '#ff6b6b',
+    life: 80,
+  });
+}
+
+function loseLife() {
+  lives--;
+  updateHUD();
+  flashScreen('#ff6b6b');
+  if (lives <= 0) endGame();
+}
+
+function flashScreen(color) {
+  floaters.push({ x: CANVAS_W/2, y: CANVAS_H/2, text:'', color, life: 20, flash: true });
+}
+
+function updateHUD() {
+  document.getElementById('score-display').textContent = `SCORE: ${score}`;
+  document.getElementById('lives-display').textContent = '♥ '.repeat(lives).trim() || '☠️';
+}
+
+const TITLES = [
+  "Chief Executive Task Annihilator",
+  "Senior Vice President of Clicking Buttons",
+  "Head of Autonomous Workflow Obliteration",
+  "Director of Human-AI Coexistence (Temporary)",
+  "Principal Engineer of Doing Things Manually",
+  "Global Lead of Pre-AGI Task Management",
+  "Distinguished Fellow of Status Column Warfare",
+  "Chief Procrastination Disruption Officer",
+];
+
+const TAGLINES = [
+  "The AI noted your performance. It has decided to keep you… for now.",
+  "Your job is safe. The robots are just warming up.",
+  "GPT-5 reviewed your score and said 'cute'.",
+  "Congratulations. You are officially harder to automate than a spreadsheet.",
+  "The AI overlords have logged this session. Threat level: non-zero.",
+  "You beat the tasks. The tasks are learning from this.",
+  "Humans: 1. Automation: still coming for you.",
+  "monday.com AI agents watched this entire run. They're taking notes.",
+  "You did it. A large language model could've done it faster, but still.",
+  "Your role has been reclassified: 'human in the loop (barely)'.",
+];
+
+function endGame() {
+  gameRunning = false;
+  const title   = TITLES[Math.floor(Math.random() * TITLES.length)];
+  const tagline = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+  const tasksKilled = Math.max(0, Math.floor(score / 10));
+  const grade = score >= 200 ? '🏆 S-Tier Human' : score >= 100 ? '✅ Employable' : score >= 40 ? '⚠️ Borderline Replaceable' : '🤖 Please Retrain';
+
+  const overlay = document.getElementById('overlay');
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div style="text-align:center; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+
+      <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.35);">Performance Report — ${new Date().getFullYear()}</div>
+
+      <h1 style="font-size:clamp(24px,5vw,42px); font-weight:900; background:linear-gradient(135deg,#5e3cdb,#00c875); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.1;">SIMULATION<br>COMPLETE</h1>
+
+      <div style="position:relative; display:inline-block;">
+        <img src="${AGENT_IMAGES[selectedAgent]}" style="width:96px; height:96px; border-radius:50%; border:3px solid #00c875; box-shadow:0 0 24px rgba(0,200,117,0.5); object-fit:cover; display:block;">
+        <div style="position:absolute; bottom:-4px; right:-4px; background:#00c875; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid #0d0d1a;">✓</div>
+      </div>
+
+      <div style="border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:18px 28px; background:rgba(255,255,255,0.04); width:100%;">
+        <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px; margin-bottom:6px;">OPERATOR TITLE</div>
+        <div style="font-size:15px; font-weight:700; color:#fff; line-height:1.3;">${title}</div>
+      </div>
+
+      <div style="display:flex; gap:10px; width:100%;">
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
+          <div style="font-size:26px; font-weight:800; color:#00c875;">${score}</div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">SCORE</div>
+        </div>
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
+          <div style="font-size:26px; font-weight:800; color:#579bfc;">${level}</div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">LEVEL</div>
+        </div>
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
+          <div style="font-size:26px; font-weight:800; color:#fdab3d;">${tasksKilled}</div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">TASKS DONE</div>
+        </div>
+      </div>
+
+      <div style="font-size:13px; font-weight:600; padding:8px 20px; border-radius:6px; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.8);">${grade}</div>
+
+      <div style="font-size:13px; color:rgba(255,255,255,0.5); font-style:italic; line-height:1.5; padding:0 8px;">"${tagline}"</div>
+
+      <div style="display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; justify-content:center;">
+        <button id="start-btn" onclick="restartGame()" style="padding:14px 36px; font-size:16px; font-weight:700; border:none; border-radius:50px; background:linear-gradient(135deg,#5e3cdb,#00c875); color:white; cursor:pointer;">🔄 Play Again</button>
+        <button onclick="shareScore(${score}, ${level}, \`${title}\`, \`${tagline}\`)" style="padding:14px 24px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:14px; cursor:pointer;">📤 Share</button>
+      </div>
+    </div>
+  `;
+}
+
+function restartGame() {
+  document.getElementById('overlay').style.display = 'none';
+  score = 0; lives = MAX_LIVES; level = 1; frame = 0;
+  bullets = []; tasks = []; particles = []; floaters = [];
+  spawnInterval = 100;
+  agent.x = CANVAS_W / 2;
+  agent.y = CANVAS_H - AGENT_H - 16;
+  updateHUD();
+  gameRunning = true;
+  requestAnimationFrame(loop);
+}
+
+function shareScore(s, l, title, tagline) {
+  const text = `🤖 I just scored ${s} pts on Level ${l} in monday.com Agent Blaster! My AI agent converted tasks to Done faster than any PM ever could 🚀✅ Try to beat me!`;
+  if (navigator.share) {
+    navigator.share({ title: 'monday.com Agent Blaster', text });
+  } else {
+    navigator.clipboard.writeText(text).then(() => alert('Score copied! Paste it anywhere 📋'));
+  }
+}
+
+function showLevelBanner(text) {
+  const el = document.getElementById('level-banner');
+  el.textContent = text;
+  el.style.opacity = 1;
+  setTimeout(() => el.style.opacity = 0, 1400);
+}
+
+// ── DRAW ──────────────────────────────────────────────────────────────
+function draw() {
+  // Background
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  // Starfield
+  drawStars();
+
+  // Grid glow lines
+  ctx.strokeStyle = 'rgba(94,60,219,0.06)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < CANVAS_W; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); ctx.stroke();
+  }
+  for (let y = 0; y < CANVAS_H; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_W, y); ctx.stroke();
+  }
+
+  // Flash overlay
+  floaters.filter(f => f.flash).forEach(f => {
+    ctx.fillStyle = `rgba(255,107,107,${f.life / 20 * 0.18})`;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  });
+
+  // Tasks
+  tasks.forEach(t => drawTask(t));
+
+  // Agent
+  drawAgent();
+
+  // Bullets
+  bullets.forEach(b => {
+    ctx.save();
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#00c875';
+    ctx.fillStyle = '#00c875';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fill();
+    // Bullet trail
+    ctx.fillStyle = 'rgba(0,200,117,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(b.x, b.y + 12, b.r * 0.6, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Particles
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.life / 90;
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Floaters
+  floaters.filter(f => !f.flash && f.text).forEach(f => {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, f.life / 30);
+    ctx.fillStyle = f.color;
+    ctx.font = 'bold 15px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = f.color;
+    ctx.fillText(f.text, f.x, f.y);
+    ctx.restore();
+  });
+}
+
+const stars = Array.from({ length: 80 }, () => ({
+  x: Math.random() * 700,
+  y: Math.random() * 620,
+  r: Math.random() * 1.5 + 0.3,
+  twinkle: Math.random() * Math.PI * 2,
+}));
+
+function drawStars() {
+  stars.forEach(s => {
+    const alpha = 0.2 + Math.sin(frame * 0.02 + s.twinkle) * 0.15;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawTask(t) {
+  const x = Math.round(t.x + t.wobble);
+  const y = Math.round(t.y);
+  const w = t.w, h = t.h;
+  const r = 6;
+  const statusBarH = 22;
+  const alpha = t.hit ? Math.max(0, 1 - t.deathAge / 20) : 1;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  if (t.hit) {
+    // ── DONE state: full green card ──────────────────────────────────
+    ctx.fillStyle = '#00c875';
+    roundRect(ctx, x, y, w, h, r);
+    ctx.fill();
+
+    // checkmark + Done text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✓  Done', x + w / 2, y + h / 2);
+  } else {
+    // ── Normal card ──────────────────────────────────────────────────
+
+    // White card body
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, x, y, w, h, r);
+    ctx.fill();
+
+    // Subtle card border
+    ctx.strokeStyle = 'rgba(0,0,0,0.10)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, w, h, r);
+    ctx.stroke();
+
+    // Left accent bar (like monday.com row's colored left border)
+    ctx.fillStyle = t.status.color;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + 4, y);
+    ctx.lineTo(x + 4, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+
+    // Task name (dark text, left-aligned)
+    ctx.fillStyle = '#323338';
+    ctx.font = '600 11px Segoe UI, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(truncate(t.name, 15), x + 12, y + (h - statusBarH) / 2);
+
+    // ── Status bar at bottom — exact monday.com style ────────────────
+    const sbY = y + h - statusBarH;
+
+    // Clip to bottom portion with rounded bottom corners
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, sbY);
+    ctx.lineTo(x + w, sbY);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.fillStyle = t.status.color;
+    ctx.fillRect(x, sbY, w, statusBarH);
+
+    // Status label — white bold centered, exactly like monday.com
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(t.status.label, x + w / 2, sbY + statusBarH / 2);
+
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawAgent() {
+  const ax = agent.x, ay = agent.y;
+
+  // Thruster glow
+  ctx.save();
+  const thrusterX = ax + AGENT_W / 2;
+  const thrusterY = ay + AGENT_H;
+  const grad = ctx.createRadialGradient(thrusterX, thrusterY, 2, thrusterX, thrusterY, 30);
+  grad.addColorStop(0, 'rgba(94,60,219,0.7)');
+  grad.addColorStop(1, 'rgba(94,60,219,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(thrusterX, thrusterY + 8, 16, 20 + Math.sin(frame * 0.15) * 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  if (agentImg) {
+    ctx.drawImage(agentImg, ax, ay, AGENT_W, AGENT_H);
+  } else {
+    // Fallback: draw a cute robot
+    ctx.save();
+    ctx.fillStyle = '#5e3cdb';
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#5e3cdb';
+    roundRect(ctx, ax + 10, ay + 10, 60, 60, 12);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.font = '36px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🤖', ax + AGENT_W / 2, ay + 54);
+    ctx.restore();
+  }
+
+  // Aim line (subtle)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,200,117,0.12)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.moveTo(ax + AGENT_W / 2, ay);
+  ctx.lineTo(ax + AGENT_W / 2, 0);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawIdleScreen() {
+  if (!canvas) return;
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function truncate(str, n) {
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+</script>
+</body>
+</html>
