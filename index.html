@@ -316,31 +316,31 @@ const AGENT_IMAGES = {
 };
 
 const TASK_NAMES = [
-  "Rename variable to 'finalFinal2'",
-  "Reply to Slack from 3 weeks ago",
-  "Fix bug introduced by last fix",
-  "Schedule meeting about meetings",
-  "Update README (for real this time)",
-  "Ask AI to write unit tests",
-  "Explain why prod is down… again",
-  "Delete commented-out code (maybe)",
-  "Revert the revert of the revert",
-  "Add TODO: fix this later",
-  "Convince PM it's not a bug",
-  "Migrate to new framework (again)",
-  "Resolve 47 merge conflicts",
-  "Turn off debug logs in prod",
-  "Write docs nobody will read",
-  "Upgrade node (breaks everything)",
-  "Respond to 'quick question'",
-  "Move ticket to In Progress",
-  "Estimate in story points 🤷",
-  "Fix 'works on my machine' bug",
-  "Deploy on Friday (what could go wrong)",
-  "Sync with stakeholders about syncing",
-  "Make the logo bigger",
-  "Investigate mystery 500 error",
-  "Add loading spinner to loading spinner",
+  "name it finalFinal2",
+  "reply to 3-week Slack",
+  "fix the fix's bug",
+  "meeting about meetings",
+  "update README (lol)",
+  "ask AI for tests",
+  "why is prod down??",
+  "delete dead code (maybe)",
+  "revert the revert",
+  "add TODO: fix later",
+  "it's not a bug, it's a feature",
+  "migrate frameworks (again)",
+  "resolve 47 conflicts",
+  "turn off prod logs",
+  "write docs no one reads",
+  "upgrade node 🙏",
+  "answer 'quick question'",
+  "move ticket to Done",
+  "estimate in story pts 🤷",
+  "works on my machine",
+  "deploy on Friday 😈",
+  "sync about syncing",
+  "make logo bigger",
+  "mystery 500 error",
+  "spinner inside spinner",
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────
@@ -904,7 +904,7 @@ function drawTask(t) {
     ctx.font = '600 11px Segoe UI, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(truncate(t.name, 22), x + 12, y + (h - statusBarH) / 2);
+    ctx.fillText(truncate(t.name, 26), x + 12, y + (h - statusBarH) / 2);
 
     // ── Status bar at bottom — exact monday.com style ────────────────
     const sbY = y + h - statusBarH;
