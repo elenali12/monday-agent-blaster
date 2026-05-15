@@ -591,7 +591,16 @@ function endGame() {
   const overlay = document.getElementById('overlay');
   overlay.style.display = 'flex';
 
-  // Step 1: name entry
+  const savedName = localStorage.getItem('ab_player_name');
+
+  if (savedName) {
+    // Already know the name — submit and go straight to score card
+    submitScore(savedName, score, level, selectedAgent).catch(() => {});
+    showScoreCard(title, tagline, grade, score, level, tasksKilled, savedName);
+    return;
+  }
+
+  // First time: ask for name
   overlay.innerHTML = `
     <div style="text-align:center; max-width:400px; display:flex; flex-direction:column; align-items:center; gap:16px;">
       <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.35);">Performance Report — ${new Date().getFullYear()}</div>
@@ -617,7 +626,7 @@ function endGame() {
 async function submitAndShow(title, tagline, grade, s, l, tasksKilled) {
   const nameEl = document.getElementById('player-name');
   const name = (nameEl ? nameEl.value.trim() : '') || 'Anonymous';
-  // Submit to Supabase (fire and forget — don't block the UI)
+  localStorage.setItem('ab_player_name', name);
   submitScore(name, s, l, selectedAgent).catch(() => {});
   showScoreCard(title, tagline, grade, s, l, tasksKilled, name);
 }
