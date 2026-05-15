@@ -316,10 +316,31 @@ const AGENT_IMAGES = {
 };
 
 const TASK_NAMES = [
-  "Q3 Report","Fix login bug","Update design","Review PR #42",
-  "Team sync","Deploy hotfix","Write specs","Client follow-up",
-  "Onboarding","Budget review","Slack noise","API docs",
-  "Sprint planning","Data migration","Email campaign",
+  "Rename variable to 'finalFinal2'",
+  "Reply to Slack from 3 weeks ago",
+  "Fix bug introduced by last fix",
+  "Schedule meeting about meetings",
+  "Update README (for real this time)",
+  "Ask AI to write unit tests",
+  "Explain why prod is down… again",
+  "Delete commented-out code (maybe)",
+  "Revert the revert of the revert",
+  "Add TODO: fix this later",
+  "Convince PM it's not a bug",
+  "Migrate to new framework (again)",
+  "Resolve 47 merge conflicts",
+  "Turn off debug logs in prod",
+  "Write docs nobody will read",
+  "Upgrade node (breaks everything)",
+  "Respond to 'quick question'",
+  "Move ticket to In Progress",
+  "Estimate in story points 🤷",
+  "Fix 'works on my machine' bug",
+  "Deploy on Friday (what could go wrong)",
+  "Sync with stakeholders about syncing",
+  "Make the logo bigger",
+  "Investigate mystery 500 error",
+  "Add loading spinner to loading spinner",
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────
@@ -496,7 +517,7 @@ function shoot() {
 function spawnTask() {
   const status = STATUSES[Math.floor(Math.random() * STATUSES.length)];
   const name   = TASK_NAMES[Math.floor(Math.random() * TASK_NAMES.length)];
-  const w = 162, h = 54;
+  const w = 190, h = 54;
   tasks.push({
     x: Math.random() * (CANVAS_W - w - 10) + 5,
     y: -h - 10,
@@ -883,7 +904,7 @@ function drawTask(t) {
     ctx.font = '600 11px Segoe UI, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(truncate(t.name, 15), x + 12, y + (h - statusBarH) / 2);
+    ctx.fillText(truncate(t.name, 22), x + 12, y + (h - statusBarH) / 2);
 
     // ── Status bar at bottom — exact monday.com style ────────────────
     const sbY = y + h - statusBarH;
