@@ -658,7 +658,15 @@ function showScoreCard(title, tagline, grade, s, l, tasksKilled, name) {
   overlay.innerHTML = `
     <div style="text-align:center; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:10px;">
 
-      <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.3);">Performance Report — ${new Date().getFullYear()}</div>
+      <!-- monday.com branding -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; gap:5px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#ff6b6b;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#fdab3d;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#00c875;"></div>
+        </div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.4); letter-spacing:1px;">monday.com AI Agent Blaster</div>
+      </div>
 
       <!-- Agent portrait -->
       <div style="position:relative; display:inline-block;">
@@ -669,7 +677,7 @@ function showScoreCard(title, tagline, grade, s, l, tasksKilled, name) {
       <!-- HERO: player name -->
       <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
         <div style="font-size:clamp(36px,8vw,56px); font-weight:900; color:#fff; line-height:1; letter-spacing:-1px;">${name}</div>
-        <div style="font-size:12px; color:rgba(255,255,255,0.35); letter-spacing:2px; text-transform:uppercase;">is a</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.35); letter-spacing:2px; text-transform:uppercase;">survived the AI takeover as</div>
         <div style="font-size:clamp(15px,3vw,19px); font-weight:700; color:#00c875; line-height:1.2;">${title}</div>
       </div>
 
