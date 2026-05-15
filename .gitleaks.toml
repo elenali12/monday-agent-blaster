@@ -1,0 +1,3 @@
+[allowlist]
+description = "Supabase anon key is intentionally public (client-side RLS-protected)"
+regexes = ['''vrambsjzkbbtotgsrjds''']

@@ -265,10 +265,29 @@
   </div>
 
   <button id="start-btn" onclick="startGame()">🚀 Start Blasting</button>
-  <button id="share-btn" onclick="shareGame()" style="display:none">📤 Share your score</button>
+  <button onclick="showLeaderboardOverlay()" style="padding:10px 28px; border-radius:50px; border:1px solid rgba(255,255,255,0.15); background:transparent; color:rgba(255,255,255,0.6); font-size:14px; cursor:pointer; margin-top:-4px;">🏆 Leaderboard</button>
 </div>
 
 <script>
+// ── SUPABASE ─────────────────────────────────────────────────────────
+const SB_URL = 'https://vrambsjzkbbtotgsrjds.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyYW1ic2p6a2JidG90Z3NyamRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NjU4MTAsImV4cCI6MjA5NDQ0MTgxMH0.3_Ll9JQC2UxHsJdvWRFaIm03IPOUHYLcoLctzN4NMCk'; // gitleaks:allow
+
+async function submitScore(name, scoreVal, levelVal, agentKey) {
+  await fetch(`${SB_URL}/rest/v1/leaderboard`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ name, score: scoreVal, level: levelVal, agent: agentKey }),
+  });
+}
+
+async function fetchLeaderboard() {
+  const res = await fetch(`${SB_URL}/rest/v1/leaderboard?select=name,score,level,agent&order=score.desc&limit=10`, {
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+  });
+  return res.json();
+}
+
 // ── CONFIG ───────────────────────────────────────────────────────────
 const CANVAS_W = Math.min(window.innerWidth - 32, 700);
 const CANVAS_H = Math.min(window.innerHeight - 100, 620);
@@ -571,6 +590,40 @@ function endGame() {
 
   const overlay = document.getElementById('overlay');
   overlay.style.display = 'flex';
+
+  // Step 1: name entry
+  overlay.innerHTML = `
+    <div style="text-align:center; max-width:400px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+      <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.35);">Performance Report — ${new Date().getFullYear()}</div>
+      <h1 style="font-size:clamp(24px,5vw,42px); font-weight:900; background:linear-gradient(135deg,#5e3cdb,#00c875); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.1;">SIMULATION<br>COMPLETE</h1>
+      <div style="position:relative; display:inline-block;">
+        <img src="${AGENT_IMAGES[selectedAgent]}" style="width:88px; height:88px; border-radius:50%; border:3px solid #00c875; box-shadow:0 0 24px rgba(0,200,117,0.5); object-fit:cover; display:block;">
+        <div style="position:absolute; bottom:-4px; right:-4px; background:#00c875; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:12px; border:2px solid #0d0d1a;">✓</div>
+      </div>
+      <div style="font-size:32px; font-weight:800; color:#00c875;">${score} pts</div>
+      <p style="color:rgba(255,255,255,0.55); font-size:14px;">Enter your name to claim your spot on the leaderboard</p>
+      <input id="player-name" maxlength="20" placeholder="Your name…" style="width:100%; padding:14px 18px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.07); color:white; font-size:16px; outline:none; text-align:center;" autofocus>
+      <div style="display:flex; gap:10px; width:100%;">
+        <button onclick="submitAndShow('${title.replace(/'/g,"\\'")}','${tagline.replace(/'/g,"\\'")}','${grade.replace(/'/g,"\\'")}',${score},${level},${tasksKilled})" style="flex:1; padding:14px; font-size:16px; font-weight:700; border:none; border-radius:50px; background:linear-gradient(135deg,#5e3cdb,#00c875); color:white; cursor:pointer;">Submit Score 🚀</button>
+        <button onclick="showScoreCard('${title.replace(/'/g,"\\'")}','${tagline.replace(/'/g,"\\'")}','${grade.replace(/'/g,"\\'")}',${score},${level},${tasksKilled},'Anonymous')" style="padding:14px 20px; border-radius:50px; border:1px solid rgba(255,255,255,0.15); background:transparent; color:rgba(255,255,255,0.4); font-size:14px; cursor:pointer;">Skip</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('player-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.querySelector('#overlay button').click();
+  });
+}
+
+async function submitAndShow(title, tagline, grade, s, l, tasksKilled) {
+  const nameEl = document.getElementById('player-name');
+  const name = (nameEl ? nameEl.value.trim() : '') || 'Anonymous';
+  // Submit to Supabase (fire and forget — don't block the UI)
+  submitScore(name, s, l, selectedAgent).catch(() => {});
+  showScoreCard(title, tagline, grade, s, l, tasksKilled, name);
+}
+
+function showScoreCard(title, tagline, grade, s, l, tasksKilled, name) {
+  const overlay = document.getElementById('overlay');
   overlay.innerHTML = `
     <div style="text-align:center; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:12px;">
 
@@ -583,6 +636,8 @@ function endGame() {
         <div style="position:absolute; bottom:-4px; right:-4px; background:#00c875; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid #0d0d1a;">✓</div>
       </div>
 
+      <div style="font-size:13px; color:rgba(255,255,255,0.5);">operator: <b style="color:#fff;">${name}</b></div>
+
       <div style="border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:18px 28px; background:rgba(255,255,255,0.04); width:100%;">
         <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px; margin-bottom:6px;">OPERATOR TITLE</div>
         <div style="font-size:15px; font-weight:700; color:#fff; line-height:1.3;">${title}</div>
@@ -590,11 +645,11 @@ function endGame() {
 
       <div style="display:flex; gap:10px; width:100%;">
         <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
-          <div style="font-size:26px; font-weight:800; color:#00c875;">${score}</div>
+          <div style="font-size:26px; font-weight:800; color:#00c875;">${s}</div>
           <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">SCORE</div>
         </div>
         <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
-          <div style="font-size:26px; font-weight:800; color:#579bfc;">${level}</div>
+          <div style="font-size:26px; font-weight:800; color:#579bfc;">${l}</div>
           <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">LEVEL</div>
         </div>
         <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
@@ -604,15 +659,44 @@ function endGame() {
       </div>
 
       <div style="font-size:13px; font-weight:600; padding:8px 20px; border-radius:6px; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.8);">${grade}</div>
-
       <div style="font-size:13px; color:rgba(255,255,255,0.5); font-style:italic; line-height:1.5; padding:0 8px;">"${tagline}"</div>
 
       <div style="display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; justify-content:center;">
         <button id="start-btn" onclick="restartGame()" style="padding:14px 36px; font-size:16px; font-weight:700; border:none; border-radius:50px; background:linear-gradient(135deg,#5e3cdb,#00c875); color:white; cursor:pointer;">🔄 Play Again</button>
-        <button onclick="shareScore(${score}, ${level}, \`${title}\`, \`${tagline}\`)" style="padding:14px 24px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:14px; cursor:pointer;">📤 Share</button>
+        <button onclick="showLeaderboardOverlay()" style="padding:14px 24px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:14px; cursor:pointer;">🏆 Leaderboard</button>
+        <button onclick="shareScore(${s}, ${l}, \`${title}\`, \`${tagline}\`)" style="padding:14px 24px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:14px; cursor:pointer;">📤 Share</button>
       </div>
     </div>
   `;
+}
+
+async function showLeaderboardOverlay() {
+  const overlay = document.getElementById('overlay');
+  overlay.innerHTML = `
+    <div style="text-align:center; max-width:420px; width:100%; display:flex; flex-direction:column; align-items:center; gap:14px;">
+      <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.35);">Global Rankings</div>
+      <h1 style="font-size:32px; font-weight:900; background:linear-gradient(135deg,#5e3cdb,#00c875); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">🏆 Leaderboard</h1>
+      <div id="lb-rows" style="width:100%; display:flex; flex-direction:column; gap:6px;">
+        <div style="color:rgba(255,255,255,0.3); font-size:13px;">Loading…</div>
+      </div>
+      <button onclick="restartGame()" style="margin-top:8px; padding:14px 36px; font-size:16px; font-weight:700; border:none; border-radius:50px; background:linear-gradient(135deg,#5e3cdb,#00c875); color:white; cursor:pointer;">🔄 Play Again</button>
+    </div>
+  `;
+
+  const rows = await fetchLeaderboard();
+  const agentEmoji = { lead:'🧑‍💼', sales:'💼', bug:'🐛', coding:'💻' };
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('lb-rows').innerHTML = rows.length === 0
+    ? '<div style="color:rgba(255,255,255,0.3);font-size:13px;">No scores yet — be the first!</div>'
+    : rows.map((r, i) => `
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:10px; background:${i===0?'rgba(0,200,117,0.08)':'rgba(255,255,255,0.03)'}; border:1px solid ${i===0?'rgba(0,200,117,0.25)':'rgba(255,255,255,0.07)'};">
+          <div style="font-size:18px; width:28px; text-align:center;">${medals[i] || `#${i+1}`}</div>
+          <div style="flex:1; text-align:left;">
+            <div style="font-weight:700; color:#fff; font-size:14px;">${r.name} <span style="font-size:12px;">${agentEmoji[r.agent]||'🤖'}</span></div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.35);">Level ${r.level}</div>
+          </div>
+          <div style="font-size:20px; font-weight:800; color:#00c875;">${r.score}</div>
+        </div>`).join('');
 }
 
 function restartGame() {
