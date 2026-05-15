@@ -656,46 +656,49 @@ async function submitAndShow(title, tagline, grade, s, l, tasksKilled) {
 function showScoreCard(title, tagline, grade, s, l, tasksKilled, name) {
   const overlay = document.getElementById('overlay');
   overlay.innerHTML = `
-    <div style="text-align:center; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+    <div style="text-align:center; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:10px;">
 
-      <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.35);">Performance Report — ${new Date().getFullYear()}</div>
+      <div style="font-size:11px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.3);">Performance Report — ${new Date().getFullYear()}</div>
 
-      <h1 style="font-size:clamp(24px,5vw,42px); font-weight:900; background:linear-gradient(135deg,#5e3cdb,#00c875); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.1;">SIMULATION<br>COMPLETE</h1>
-
+      <!-- Agent portrait -->
       <div style="position:relative; display:inline-block;">
-        <img src="${AGENT_IMAGES[selectedAgent]}" style="width:96px; height:96px; border-radius:50%; border:3px solid #00c875; box-shadow:0 0 24px rgba(0,200,117,0.5); object-fit:cover; display:block;">
-        <div style="position:absolute; bottom:-4px; right:-4px; background:#00c875; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:13px; border:2px solid #0d0d1a;">✓</div>
+        <img src="${AGENT_IMAGES[selectedAgent]}" style="width:72px; height:72px; border-radius:50%; border:2px solid #00c875; box-shadow:0 0 18px rgba(0,200,117,0.4); object-fit:cover; display:block;">
+        <div style="position:absolute; bottom:-3px; right:-3px; background:#00c875; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:11px; border:2px solid #0d0d1a;">✓</div>
       </div>
 
-      <div style="font-size:13px; color:rgba(255,255,255,0.5);">operator: <b style="color:#fff;">${name}</b></div>
-
-      <div style="border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:18px 28px; background:rgba(255,255,255,0.04); width:100%;">
-        <div style="font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:2px; margin-bottom:6px;">OPERATOR TITLE</div>
-        <div style="font-size:15px; font-weight:700; color:#fff; line-height:1.3;">${title}</div>
+      <!-- HERO: player name -->
+      <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+        <div style="font-size:clamp(36px,8vw,56px); font-weight:900; color:#fff; line-height:1; letter-spacing:-1px;">${name}</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.35); letter-spacing:2px; text-transform:uppercase;">is a</div>
+        <div style="font-size:clamp(15px,3vw,19px); font-weight:700; color:#00c875; line-height:1.2;">${title}</div>
       </div>
 
-      <div style="display:flex; gap:10px; width:100%;">
-        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
-          <div style="font-size:26px; font-weight:800; color:#00c875;">${s}</div>
+      <!-- Stats -->
+      <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:12px 6px; background:rgba(255,255,255,0.03); text-align:center;">
+          <div style="font-size:28px; font-weight:800; color:#00c875;">${s}</div>
           <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">SCORE</div>
         </div>
-        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
-          <div style="font-size:26px; font-weight:800; color:#579bfc;">${l}</div>
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:12px 6px; background:rgba(255,255,255,0.03); text-align:center;">
+          <div style="font-size:28px; font-weight:800; color:#579bfc;">${l}</div>
           <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">LEVEL</div>
         </div>
-        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:14px 8px; background:rgba(255,255,255,0.03); text-align:center;">
-          <div style="font-size:26px; font-weight:800; color:#fdab3d;">${tasksKilled}</div>
+        <div style="flex:1; border:1px solid rgba(255,255,255,0.10); border-radius:10px; padding:12px 6px; background:rgba(255,255,255,0.03); text-align:center;">
+          <div style="font-size:28px; font-weight:800; color:#fdab3d;">${tasksKilled}</div>
           <div style="font-size:10px; color:rgba(255,255,255,0.4); letter-spacing:1px; margin-top:2px;">TASKS DONE</div>
         </div>
       </div>
 
-      <div style="font-size:13px; font-weight:600; padding:8px 20px; border-radius:6px; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.8);">${grade}</div>
-      <div style="font-size:13px; color:rgba(255,255,255,0.5); font-style:italic; line-height:1.5; padding:0 8px;">"${tagline}"</div>
+      <div style="font-size:13px; font-weight:600; padding:7px 18px; border-radius:6px; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.8);">${grade}</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.45); font-style:italic; line-height:1.5; padding:0 8px;">"${tagline}"</div>
 
-      <div style="display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; justify-content:center;">
-        <button id="start-btn" onclick="restartGame()" style="padding:14px 36px; font-size:16px; font-weight:700; border:none; border-radius:50px; background:linear-gradient(135deg,#5e3cdb,#00c875); color:white; cursor:pointer;">🔄 Play Again</button>
-        <button onclick="showLeaderboardOverlay()" style="padding:14px 24px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:14px; cursor:pointer;">🏆 Leaderboard</button>
-        <button onclick="shareScore(${s}, ${l}, \`${title}\`, \`${tagline}\`)" style="padding:14px 24px; border-radius:50px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size:14px; cursor:pointer;">📤 Share</button>
+      <!-- CTA: Share is primary -->
+      <div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:6px;">
+        <button onclick="shareScore(${s}, ${l}, \`${title}\`, \`${tagline}\`)" style="width:100%; padding:16px; font-size:17px; font-weight:800; border:none; border-radius:50px; background:linear-gradient(135deg,#5e3cdb,#00c875); color:white; cursor:pointer; letter-spacing:0.3px;">📤 Share your result</button>
+        <div style="display:flex; gap:8px;">
+          <button id="start-btn" onclick="restartGame()" style="flex:1; padding:13px; font-size:14px; font-weight:700; border:1px solid rgba(255,255,255,0.2); border-radius:50px; background:transparent; color:white; cursor:pointer;">🔄 Play Again</button>
+          <button onclick="showLeaderboardOverlay()" style="flex:1; padding:13px; font-size:14px; font-weight:700; border:1px solid rgba(255,255,255,0.2); border-radius:50px; background:transparent; color:white; cursor:pointer;">🏆 Leaderboard</button>
+        </div>
       </div>
     </div>
   `;
