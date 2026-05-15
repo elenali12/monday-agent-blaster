@@ -108,16 +108,20 @@
   }
 
   .status-pill {
-    padding: 6px 16px;
-    border-radius: 4px;
-    font-size: 13px;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 700;
+    color: #fff;
     letter-spacing: 0.2px;
+    min-width: 140px;
+    text-align: center;
   }
-  .s-stuck     { background: #e2445c; color: #fff; }
-  .s-working   { background: #fdab3d; color: #fff; }
-  .s-review    { background: #579bfc; color: #fff; }
-  .s-done      { background: #00c875; color: #fff; }
+  .s-stuck     { background: #e2445c; }
+  .s-working   { background: #fdab3d; }
+  .s-review    { background: #579bfc; }
+  .s-done      { background: #00c875; }
+  .s-notstart  { background: #c4c4c4; color: #fff; }
 
   #start-btn {
     margin-top: 12px;
@@ -237,11 +241,12 @@
   <h1>Agent Blaster</h1>
   <p>Your monday.com AI agent is on a mission — shoot every task before it reaches <b style="color:#ff6b6b">STUCK</b>!</p>
 
-  <div class="pill-row">
-    <div class="status-pill s-stuck">Stuck 💀 −1 life</div>
-    <div class="status-pill s-working">Working on it</div>
-    <div class="status-pill s-review">In Review</div>
-    <div class="status-pill s-done">Done ✓ +10 pts</div>
+  <div class="pill-row" style="flex-direction:column; align-items:center; gap:8px; width:200px;">
+    <div class="status-pill s-working" style="width:100%;">Working on it</div>
+    <div class="status-pill s-done" style="width:100%;">Done ✓ +pts</div>
+    <div class="status-pill s-stuck" style="width:100%;">Stuck 💀 −1 life</div>
+    <div class="status-pill s-notstart" style="width:100%;">Not Started</div>
+    <div class="status-pill s-review" style="width:100%;">In Review</div>
   </div>
 
   <p style="font-size:13px; color:rgba(255,255,255,0.45)">Choose your agent</p>
