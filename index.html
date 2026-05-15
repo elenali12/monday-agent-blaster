@@ -390,7 +390,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', e => {
     keys[e.code] = true;
-    if (e.code === 'Space') { e.preventDefault(); shoot(); }
+    if (['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
+    if (e.code === 'Space') shoot();
   });
   window.addEventListener('keyup', e => keys[e.code] = false);
 
@@ -436,14 +437,16 @@ function loop() {
 }
 
 function update() {
-  // Agent movement — keyboard takes priority; mouse only when no key held
+  // Agent movement
   const usingKeys = keys['ArrowLeft'] || keys['KeyA'] || keys['ArrowRight'] || keys['KeyD'];
-  if (!usingKeys && mouseX !== null && Date.now() - lastMouseMove < 1000) {
+  if (usingKeys) {
+    mouseX = null; // keyboard wins — clear mouse so it doesn't fight back
+    if (keys['ArrowLeft'] || keys['KeyA'])  agent.x -= 6;
+    if (keys['ArrowRight'] || keys['KeyD']) agent.x += 6;
+  } else if (mouseX !== null) {
     const target = mouseX - AGENT_W / 2;
     agent.x += (target - agent.x) * 0.18;
   }
-  if (keys['ArrowLeft'] || keys['KeyA'])  agent.x -= 6;
-  if (keys['ArrowRight'] || keys['KeyD']) agent.x += 6;
   agent.x = Math.max(0, Math.min(CANVAS_W - AGENT_W, agent.x));
 
   // Bullets
