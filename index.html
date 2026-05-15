@@ -359,6 +359,7 @@ let floaters = []; // "Done!" popups
 
 let keys = {};
 let mouseX = null;
+let lastMouseMove = 0;
 let lastShot = 0;
 let spawnInterval = 100;
 
@@ -372,6 +373,7 @@ window.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
     mouseX = e.clientX - r.left;
+    lastMouseMove = Date.now();
   });
   canvas.addEventListener('mousedown', shoot);
   canvas.addEventListener('touchstart', e => {
@@ -434,8 +436,9 @@ function loop() {
 }
 
 function update() {
-  // Agent movement
-  if (mouseX !== null) {
+  // Agent movement — keyboard takes priority; mouse only when no key held
+  const usingKeys = keys['ArrowLeft'] || keys['KeyA'] || keys['ArrowRight'] || keys['KeyD'];
+  if (!usingKeys && mouseX !== null && Date.now() - lastMouseMove < 1000) {
     const target = mouseX - AGENT_W / 2;
     agent.x += (target - agent.x) * 0.18;
   }
