@@ -784,11 +784,34 @@ function restartGame() {
 
 function shareScore(s, l, title, tagline) {
   const text = `🤖 I just scored ${s} pts on Level ${l} in monday.com Agent Blaster! My AI agent converted tasks to Done faster than any human ever could 🚀✅ Try to beat me!\nhttps://elenali12.github.io/monday-agent-blaster/`;
+  const url = 'https://elenali12.github.io/monday-agent-blaster/';
+
   if (navigator.share) {
-    navigator.share({ title: 'monday.com Agent Blaster', text });
-  } else {
-    navigator.clipboard.writeText(text).then(() => alert('Score copied! Paste it anywhere 📋'));
+    navigator.share({ title: 'monday.com Agent Blaster', text, url }).catch(() => {});
+    return;
   }
+
+  // Desktop: show share options inline
+  const btn = document.querySelector('[onclick^="shareScore"]');
+  const container = btn ? btn.closest('div') : null;
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="width:100%; display:flex; flex-direction:column; gap:8px;">
+      <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(text)}" target="_blank"
+         style="width:100%; padding:14px; font-size:15px; font-weight:700; border:none; border-radius:50px; background:#0A66C2; color:white; cursor:pointer; text-decoration:none; text-align:center; display:block; box-sizing:border-box;">
+        🔗 Share on LinkedIn
+      </a>
+      <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}" target="_blank"
+         style="width:100%; padding:14px; font-size:15px; font-weight:700; border:none; border-radius:50px; background:#1DA1F2; color:white; cursor:pointer; text-decoration:none; text-align:center; display:block; box-sizing:border-box;">
+        🐦 Share on X / Twitter
+      </a>
+      <button onclick="navigator.clipboard.writeText(${JSON.stringify(text)}).then(()=>{ this.textContent='✅ Copied!'; setTimeout(()=>this.textContent='📋 Copy text',1800); })"
+         style="width:100%; padding:14px; font-size:15px; font-weight:700; border:1px solid rgba(255,255,255,0.2); border-radius:50px; background:transparent; color:white; cursor:pointer;">
+        📋 Copy text
+      </button>
+    </div>
+  `;
 }
 
 function showLevelBanner(text) {
