@@ -786,7 +786,8 @@ function shareScore(s, l, title, tagline) {
   const text = `🤖 I just scored ${s} pts on Level ${l} in monday.com Agent Blaster! My AI agent converted tasks to Done faster than any human ever could 🚀✅ Try to beat me!\nhttps://elenali12.github.io/monday-agent-blaster/`;
   const url = 'https://elenali12.github.io/monday-agent-blaster/';
 
-  if (navigator.share) {
+  // Mobile only (touch device): use native share sheet
+  if (navigator.share && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
     navigator.share({ title: 'monday.com Agent Blaster', text, url }).catch(() => {});
     return;
   }
