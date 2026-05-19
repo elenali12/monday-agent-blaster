@@ -289,6 +289,21 @@ async function fetchLeaderboard() {
   return res.json();
 }
 
+// Fire page_view immediately on load
+window.addEventListener('DOMContentLoaded', () => trackEvent('page_view', { agent: null, score: null, level: null }));
+
+function trackEvent(name, extra = {}) {
+  fetch(`${SB_URL}/rest/v1/events`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+               'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ event: name, agent: selectedAgent || null,
+                           score: typeof score !== 'undefined' ? score : null,
+                           level: typeof level !== 'undefined' ? level : null,
+                           ...extra }),
+  }).catch(() => {});
+}
+
 // ── CONFIG ───────────────────────────────────────────────────────────
 const CANVAS_W = Math.min(window.innerWidth - 32, 700);
 const CANVAS_H = Math.min(window.innerHeight - 100, 620);
@@ -413,6 +428,7 @@ function preloadAgentImage(key, cb) {
 }
 
 function startGame() {
+  trackEvent('game_start');
   document.getElementById('overlay').style.display = 'none';
   score = 0; lives = MAX_LIVES; level = 1; frame = 0;
   bullets = []; tasks = []; particles = []; floaters = [];
@@ -611,6 +627,7 @@ const TAGLINES = [
 
 function endGame() {
   gameRunning = false;
+  trackEvent('game_over');
   const title   = TITLES[Math.floor(Math.random() * TITLES.length)];
   const tagline = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
   const tasksKilled = Math.max(0, Math.floor(score / 10));
@@ -655,6 +672,7 @@ async function submitAndShow(title, tagline, grade, s, l, tasksKilled) {
   const nameEl = document.getElementById('player-name');
   const name = (nameEl ? nameEl.value.trim() : '') || 'Anonymous';
   localStorage.setItem('ab_player_name', name);
+  trackEvent('score_submit', { score: s, level: l });
   await submitScore(name, s, l, selectedAgent).catch(() => {});
   // Check leaderboard rank after submission
   let rank = null;
@@ -742,6 +760,7 @@ function showScoreCard(title, tagline, grade, s, l, tasksKilled, name, rank) {
 }
 
 async function showLeaderboardOverlay() {
+  trackEvent('leaderboard_open');
   const overlay = document.getElementById('overlay');
   overlay.innerHTML = `
     <div style="text-align:center; max-width:420px; width:100%; display:flex; flex-direction:column; align-items:center; gap:14px;">
@@ -783,6 +802,7 @@ function restartGame() {
 }
 
 function shareScore(s, l, title, tagline) {
+  trackEvent('share_click', { score: s, level: l });
   const text = `🤖 I just scored ${s} pts on Level ${l} in monday.com Agent Blaster! My AI agent converted tasks to Done faster than any human ever could 🚀✅ Try to beat me!\nhttps://elenali12.github.io/monday-agent-blaster/`;
   const url = 'https://elenali12.github.io/monday-agent-blaster/';
 
