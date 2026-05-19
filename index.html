@@ -229,7 +229,7 @@
     Agent Blaster
   </div>
   <div id="score-display">SCORE: 0</div>
-  <div id="lives-display">♥ ♥ ♥</div>
+  <div id="lives-display" style="display:none"></div>
 </div>
 
 <canvas id="game-canvas"></canvas>
@@ -311,7 +311,7 @@ const AGENT_W  = 80;
 const AGENT_H  = 80;
 const BULLET_SPEED = 10;
 const TASK_SPEED_BASE = 0.9;
-const MAX_LIVES = 3;
+const MAX_LIVES = 1;
 
 // Exact monday.com status colors
 const STATUSES = [
@@ -586,10 +586,8 @@ function blastTask(t, idx) {
 }
 
 function loseLife() {
-  lives--;
-  updateHUD();
   flashScreen('#ff6b6b');
-  if (lives <= 0) endGame();
+  endGame();
 }
 
 function flashScreen(color) {
